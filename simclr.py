@@ -59,7 +59,7 @@ class SimCLR(object):
         negatives = similarity_matrix[~labels.bool()].view(similarity_matrix.shape[0], -1)
 
         logits = torch.cat([positives, negatives], dim=1)
-        labels = torch.zeros(logits.shape[0]).to(self.args.device)
+        labels = torch.zeros(logits.shape[0], dtype=torch.long).to(self.args.device)
 
         logits = logits / self.args.temperature
         return logits, labels
