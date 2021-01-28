@@ -1,8 +1,18 @@
 import os
 import shutil
+import random
 
+import numpy as np
 import torch
 import yaml
+
+
+def set_random_seed(seed):
+    torch.backends.cudnn.deterministic = True
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):

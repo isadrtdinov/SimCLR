@@ -4,12 +4,11 @@ import sys
 
 import torch
 import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+import wandb
 
-from utils import save_config_file, accuracy, save_checkpoint
+from utils import accuracy, save_checkpoint
 
-torch.manual_seed(0)
 
 apex_support = False
 try:
@@ -28,10 +27,11 @@ class SimCLR(object):
         self.args = kwargs['args']
         self.model = kwargs['model'].to(self.args.device)
         self.optimizer = kwargs['optimizer']
-        self.scheduler = kwargs['scheduler']
-        self.writer = SummaryWriter()
-        logging.basicConfig(filename=os.path.join(self.writer.log_dir, 'training.log'), level=logging.DEBUG)
+        logging.basicConfig(filename=os.path.join(wandb.run.dir, 'training.log'), level=logging.DEBUG)
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
+
+        wandb.init(project='simclr', config=self.args)
+        wandb.watch(self.model)
 
     def info_nce_loss(self, features):
 
@@ -71,8 +71,6 @@ class SimCLR(object):
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer,
                                                         opt_level='O2',
                                                         keep_batchnorm_fp32=True)
-        # save config file
-        save_config_file(self.writer.log_dir, self.args)
 
         n_iter = 0
         logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
@@ -99,25 +97,19 @@ class SimCLR(object):
 
                 if n_iter % self.args.log_every_n_steps == 0:
                     top1, top5 = accuracy(logits, labels, topk=(1, 5))
-                    self.writer.add_scalar('loss', loss, global_step=n_iter)
-                    self.writer.add_scalar('acc/top1', top1[0], global_step=n_iter)
-                    self.writer.add_scalar('acc/top5', top5[0], global_step=n_iter)
-                    self.writer.add_scalar('learning_rate', self.scheduler.get_lr()[0], global_step=n_iter)
+                    wandb.log({'loss': loss, 'acc/top1': top1[0], 'acc/top5': top5[0]})
 
                 n_iter += 1
 
-            # warmup for the first 10 epochs
-            if epoch_counter >= 10:
-                self.scheduler.step()
             logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss}\tTop1 accuracy: {top1[0]}")
 
         logging.info("Training has finished.")
         # save model checkpoints
-        checkpoint_name = 'checkpoint_{:04d}.pth.tar'.format(self.args.epochs)
+        checkpoint_name = 'checkpoint_{:04d}.pt'.format(self.args.epochs)
         save_checkpoint({
             'epoch': self.args.epochs,
             'arch': self.args.arch,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
-        }, is_best=False, filename=os.path.join(self.writer.log_dir, checkpoint_name))
-        logging.info(f"Model checkpoint and metadata has been saved at {self.writer.log_dir}.")
+        }, is_best=False, filename=os.path.join(wandb.run.dir, checkpoint_name))
+        logging.info(f"Model checkpoint and metadata has been saved at {wandb.run.dir}.")
