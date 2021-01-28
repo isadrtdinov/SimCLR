@@ -27,11 +27,11 @@ class SimCLR(object):
         self.args = kwargs['args']
         self.model = kwargs['model'].to(self.args.device)
         self.optimizer = kwargs['optimizer']
-        logging.basicConfig(filename=os.path.join(wandb.run.dir, 'training.log'), level=logging.DEBUG)
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
 
         wandb.init(project='simclr', config=self.args)
         wandb.watch(self.model)
+        logging.basicConfig(filename=os.path.join(wandb.run.dir, 'training.log'), level=logging.DEBUG)
 
     def info_nce_loss(self, features):
 
