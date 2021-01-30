@@ -36,7 +36,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
 
     checkpoints = []
-    for root, dirs, files in os.walk(os.path.join('wandb', args.wandb_group)):
+    for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group)):
         if root.endswith('latest-run'):
             continue
         for file in files:
@@ -70,7 +70,7 @@ def main():
 
     if not os.path.isdir('experiments'):
         os.mkdir('experiments')
-    torch.save(mean_probs, os.path.join('experiments', args.wandb_group))
+    torch.save(mean_probs, os.path.join('experiments', args.experiment_group))
 
 
 if __name__ == '__main__':

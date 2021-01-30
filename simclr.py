@@ -29,17 +29,21 @@ class SimCLR(object):
         self.optimizer = kwargs['optimizer']
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
 
+        if not os.path.isdir('experiments'):
+            os.mkdir('experiments')
+        experiment_dir = os.path.join('experiments', self.args.experiment_group)
+        if not os.path.isdir(experiment_dir):
+            os.mkdir(experiment_dir)
+
         if self.args.use_logging:
-            if not os.path.isdir('wandb'):
-                os.mkdir('wandb')
-            wandb.init(project='simclr', config=self.args, group=self.args.wandb_group,
-                       dir=os.path.join('wandb', self.args.wandb_group))
+            wandb.init(project='simclr', config=self.args, group=self.args.experiment_group,
+                       dir=experiment_dir)
             wandb.watch(self.model)
             logging.basicConfig(filename=os.path.join(wandb.run.dir, 'training.log'), level=logging.DEBUG)
 
     def info_nce_loss(self, features):
 
-        labels = torch.cat([torch.arange(self.args.batch_size) for i in range(self.args.n_views)], dim=0)
+        labels = torch.cat([torch.arange(self.args.batch_size) for _ in range(self.args.n_views)], dim=0)
         labels = (labels.unsqueeze(0) == labels.unsqueeze(1)).float()
         labels = labels.to(self.args.device)
 
