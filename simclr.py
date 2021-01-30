@@ -29,12 +29,13 @@ class SimCLR(object):
         self.optimizer = kwargs['optimizer']
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
 
-        if not os.path.isdir('wandb'):
-            os.mkdir('wandb')
-        wandb.init(project='simclr', config=self.args, group=self.args.wandb_group,
-                   dir=os.path.join('wandb', self.args.wandb_group))
-        wandb.watch(self.model)
-        logging.basicConfig(filename=os.path.join(wandb.run.dir, 'training.log'), level=logging.DEBUG)
+        if self.args.use_logging:
+            if not os.path.isdir('wandb'):
+                os.mkdir('wandb')
+            wandb.init(project='simclr', config=self.args, group=self.args.wandb_group,
+                       dir=os.path.join('wandb', self.args.wandb_group))
+            wandb.watch(self.model)
+            logging.basicConfig(filename=os.path.join(wandb.run.dir, 'training.log'), level=logging.DEBUG)
 
     def info_nce_loss(self, features):
 
@@ -76,13 +77,13 @@ class SimCLR(object):
                                                         keep_batchnorm_fp32=True)
 
         n_iter = 0
-        logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
-        logging.info(f"Training with gpu: {self.args.disable_cuda}.")
+        if self.args.use_logging:
+            logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
+            logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
         for epoch_counter in range(self.args.epochs):
             for images, _ in tqdm(train_loader):
                 images = torch.cat(images, dim=0)
-
                 images = images.to(self.args.device)
 
                 features = self.model(images)
@@ -98,15 +99,15 @@ class SimCLR(object):
 
                 self.optimizer.step()
 
-                if n_iter % self.args.log_every_n_steps == 0:
+                if self.args.use_logging and n_iter % self.args.log_every_n_steps == 0:
                     top1, top5 = accuracy(logits, labels, topk=(1, 5))
                     wandb.log({'loss': loss, 'acc/top1': top1[0], 'acc/top5': top5[0]})
 
                 n_iter += 1
 
-            logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss}\tTop1 accuracy: {top1[0]}")
+            if self.args.use_logging:
+                logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss}\tTop1 accuracy: {top1[0]}")
 
-        logging.info("Training has finished.")
         # save model checkpoints
         checkpoint_name = 'checkpoint_{:04d}.pt'.format(self.args.epochs)
         save_checkpoint({
@@ -115,4 +116,7 @@ class SimCLR(object):
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
         }, is_best=False, filename=os.path.join(wandb.run.dir, checkpoint_name))
-        logging.info(f"Model checkpoint and metadata has been saved at {wandb.run.dir}.")
+
+        if self.args.use_logging:
+            logging.info("Training has finished.")
+            logging.info(f"Model checkpoint and metadata has been saved at {wandb.run.dir}.")
