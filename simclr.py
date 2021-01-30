@@ -35,7 +35,7 @@ class SimCLR(object):
         if not os.path.isdir(experiment_dir):
             os.mkdir(experiment_dir)
 
-        if self.args.use_logging:
+        if not self.args.no_logging:
             wandb.init(project='simclr', config=self.args, group=self.args.experiment_group,
                        dir=experiment_dir)
             wandb.watch(self.model)
@@ -81,7 +81,7 @@ class SimCLR(object):
                                                         keep_batchnorm_fp32=True)
 
         n_iter = 0
-        if self.args.use_logging:
+        if not self.args.no_logging:
             logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
             logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
@@ -109,7 +109,7 @@ class SimCLR(object):
 
                 n_iter += 1
 
-            if self.args.use_logging:
+            if not self.args.no_logging:
                 logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss}\tTop1 accuracy: {top1[0]}")
 
         # save model checkpoints
@@ -121,6 +121,6 @@ class SimCLR(object):
             'optimizer': self.optimizer.state_dict(),
         }, is_best=False, filename=os.path.join(wandb.run.dir, checkpoint_name))
 
-        if self.args.use_logging:
+        if not self.args.no_logging:
             logging.info("Training has finished.")
             logging.info(f"Model checkpoint and metadata has been saved at {wandb.run.dir}.")

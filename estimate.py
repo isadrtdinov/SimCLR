@@ -24,16 +24,8 @@ def main():
         args.gpu_index = -1
 
     dataset = ContrastiveLearningDataset(args.data)
-
     train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
-
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True,
-        num_workers=args.workers, pin_memory=True, drop_last=True)
-
     model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
-
-    optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
 
     checkpoints = []
     for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group)):
@@ -41,24 +33,35 @@ def main():
             if file.endswith('.pt'):
                 checkpoints += [os.path.join(root, file)]
 
+    set_random_seed(args.seed)
+    sample_indices = torch.randint(len(dataset), size=args.batch_size * args.estimate_batches)
+
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
     mean_probs = []
     with torch.cuda.device(args.gpu_index):
         for file in checkpoints:
             state = torch.load(file)
             model.load_state_dict(state['state_dict'])
-            simclr = SimCLR(model=model, optimizer=optimizer, args=args)
+            model.eval()
+            simclr = SimCLR(model=model, optimizer=None, args=args)
 
-            set_random_seed(args.seed)
             checkpoint_probs = []
-            for images, _ in train_loader:
-                images = torch.cat(images, dim=0)
-                images = images.to(args.device)
+            for i in range(args.estimate_batches):
+                if args.fixed_augments:
+                    set_random_seed(args.seed)
 
-                features = model(images)
-                logits, _ = simclr.info_nce_loss(features)
-                probs = torch.softmax(logits, dim=1)[:, 0]
-                checkpoint_probs += [probs]
+                images = []
+                for index in sample_indices[i: i + args.batch_size]:
+                    images += [torch.stack(train_dataset[index], dim=0)]
+
+                with torch.no_grad():
+                    images = torch.cat(images, dim=0)
+                    images = images.to(args.device)
+
+                    features = model(images)
+                    logits, _ = simclr.info_nce_loss(features)
+                    probs = torch.softmax(logits, dim=1)[:, 0]
+                    checkpoint_probs += [probs.detach().cpu()]
 
             checkpoint_probs = torch.cat(checkpoint_probs, dim=0)
             mean_probs += [checkpoint_probs]
