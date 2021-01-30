@@ -28,7 +28,7 @@ def main():
     model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
 
     checkpoints = []
-    for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group)):
+    for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group, 'wandb')):
         for file in files:
             if file.endswith('.pt'):
                 checkpoints += [os.path.join(root, file)]
