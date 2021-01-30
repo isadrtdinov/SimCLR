@@ -54,6 +54,6 @@ def configure_parser():
                         help='Number of batches to estimate probs')
     parser.add_argument('--fixed-augments', action='store_true',
                         help='Whether to use non-random augmentations during estimation')
-    parser.add_argument('--out-file', defaul='estimated_probs.pt',
+    parser.add_argument('--out-file', default='estimated_probs.pt',
                         help='Out file to save estimated probs')
     return parser
