@@ -52,7 +52,7 @@ def main():
 
                 images = []
                 for index in sample_indices[i: i + args.batch_size]:
-                    images += [torch.stack(train_dataset[index], dim=0)]
+                    images += [torch.stack(train_dataset[index][0], dim=0)]
 
                 with torch.no_grad():
                     images = torch.cat(images, dim=0)

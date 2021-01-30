@@ -49,7 +49,7 @@ def configure_parser():
     parser.add_argument('--gpu-index', default=0, type=int, help='Gpu index.')
 
     parser.add_argument('--experiment-group', default=None, help='Experiment group name')
-    parser.add_argument('--no-logging', action='store_false', help='Turn off logging to W&B')
+    parser.add_argument('--no-logging', action='store_true', help='Turn off logging to W&B')
     parser.add_argument('--estimate-batches', type=int, default=4,
                         help='Number of batches to estimate probs')
     parser.add_argument('--fixed-augments', action='store_true',
