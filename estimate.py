@@ -34,7 +34,7 @@ def main():
                 checkpoints += [os.path.join(root, file)]
 
     set_random_seed(args.seed)
-    sample_indices = torch.randint(len(dataset), size=args.batch_size * args.estimate_batches)
+    sample_indices = torch.randint(len(train_dataset), size=args.batch_size * args.estimate_batches)
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
     mean_probs = []
