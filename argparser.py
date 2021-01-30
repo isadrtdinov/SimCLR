@@ -38,7 +38,7 @@ def configure_parser():
     parser.add_argument('--fp16_precision', default=False, type=bool,
                         help='Whether or not to use 16-bit precision GPU training.')
 
-    parser.add_argument('--out_dim', default=128, type=int,
+    parser.add_argument('--out-dim', default=128, type=int,
                         help='feature dimension (default: 128)')
     parser.add_argument('--log-every-n-steps', default=100, type=int,
                         help='Log every n steps')
@@ -48,10 +48,12 @@ def configure_parser():
                         help='Number of views for contrastive learning training.')
     parser.add_argument('--gpu-index', default=0, type=int, help='Gpu index.')
 
-    parser.add_argument('--experiment-group', default=None, help='Experiment group name')
+    parser.add_argument('--experiment-group', default='group', help='Experiment group name')
     parser.add_argument('--no-logging', action='store_true', help='Turn off logging to W&B')
     parser.add_argument('--estimate-batches', type=int, default=4,
                         help='Number of batches to estimate probs')
     parser.add_argument('--fixed-augments', action='store_true',
                         help='Whether to use non-random augmentations during estimation')
+    parser.add_argument('--out-file', defaul='estimated_probs.pt',
+                        help='Out file to save estimated probs')
     return parser

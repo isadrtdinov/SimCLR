@@ -71,7 +71,7 @@ def main():
 
     if not os.path.isdir('experiments'):
         os.mkdir('experiments')
-    torch.save(mean_probs, os.path.join('experiments', args.experiment_group))
+    torch.save(mean_probs, os.path.join('experiments', args.experiment_group, args.out_file))
 
 
 if __name__ == '__main__':
