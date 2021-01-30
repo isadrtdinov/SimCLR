@@ -37,11 +37,9 @@ def main():
 
     checkpoints = []
     for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group)):
-        if root.endswith('latest-run'):
-            continue
         for file in files:
             if file.endswith('.pt'):
-                checkpoints += [file]
+                checkpoints += [os.path.join(root, file)]
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
     mean_probs = []
