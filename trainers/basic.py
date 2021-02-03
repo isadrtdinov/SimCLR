@@ -44,7 +44,7 @@ class BasicTrainer(object):
                 loss.backward()
                 self.optimizer.step()
 
-                if self.args.use_logging and n_iter % self.args.log_every_n_steps == 0:
+                if not self.args.no_logging and n_iter % self.args.log_every_n_steps == 0:
                     top1, top5 = accuracy(logits, labels, topk=(1, 5))
                     wandb.log({'loss': loss, 'acc/top1': top1[0], 'acc/top5': top5[0]})
 
