@@ -53,7 +53,7 @@ def main():
     with torch.cuda.device(args.gpu_index):
         for file in checkpoints:
             state = torch.load(file)
-            model.load_state_dict(state['state_dict'])
+            model.load_state_dict(state['model'])
             model.eval()
             trainer = trainer_class(model=model, optimizer=None, args=args)
 

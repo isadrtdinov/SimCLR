@@ -35,7 +35,7 @@ class BasicTrainer(object):
             logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
             logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
-        for epoch_counter in range(self.args.epochs):
+        for epoch_counter in range(1, self.args.epochs + 1):
             for images, labels in tqdm(train_loader):
                 logits, labels = self.calculate_logits(images, labels)
                 loss = self.criterion(logits, labels)
