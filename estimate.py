@@ -80,7 +80,7 @@ def main():
 
                     if args.estimate_mode == 'argmax':
                         stats = (torch.argmax(logits, dim=1) == labels).to(torch.int)
-                    elif args.estimate_mode == 'probs':
+                    elif args.estimate_mode == 'prob':
                         stats = torch.softmax(logits, dim=1)
                     else:
                         raise InvalidEstimationMode()
