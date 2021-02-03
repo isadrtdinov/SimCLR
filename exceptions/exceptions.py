@@ -8,3 +8,11 @@ class InvalidBackboneError(BaseSimCLRException):
 
 class InvalidDatasetSelection(BaseSimCLRException):
     """Raised when the choice of dataset is invalid."""
+
+
+class InvalidTrainingMode(BaseSimCLRException):
+    """Raised when the choice of training mode is invalid"""
+
+
+class InvalidEstimationMode(BaseSimCLRException):
+    """Raised when the choice of estimation mode is invalid"""

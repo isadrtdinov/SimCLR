@@ -2,8 +2,11 @@ import os
 import torch
 import torch.backends.cudnn as cudnn
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
+from data_aug.supervised_learning_dataset import SupervisedLearningDataset
 from models.resnet_simclr import ResNetSimCLR
-from simclr import SimCLR
+from exceptions.exceptions import InvalidTrainingMode, InvalidEstimationMode
+from trainers.simclr import SimCLRTrainer
+from trainers.supervised import SupervisedTrainer
 from utils import set_random_seed
 from argparser import configure_parser
 
@@ -23,55 +26,72 @@ def main():
         args.device = torch.device('cpu')
         args.gpu_index = -1
 
-    dataset = ContrastiveLearningDataset(args.data)
-    train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
-    model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
+    if args.mode == 'simclr':
+        dataset = ContrastiveLearningDataset(args.data)
+        train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
+        model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
+        trainer_class = SimCLRTrainer
+    elif args.mode == 'supervised':
+        dataset = SupervisedLearningDataset(args.data)
+        train_dataset = dataset.get_dataset(args.dataset_name)
+        model = ResNetSimCLR(base_model=args.arch, out_dim=len(train_dataset.classes))
+        trainer_class = SupervisedTrainer
+    else:
+        raise InvalidTrainingMode()
 
     checkpoints = []
     for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group, 'wandb')):
         for file in files:
-            if file.endswith('.pt'):
+            if file == args.estimate_checkpoint:
                 checkpoints += [os.path.join(root, file)]
 
     set_random_seed(args.seed)
     sample_indices = torch.randint(len(train_dataset), size=(args.batch_size * args.estimate_batches, ))
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
-    mean_probs = []
+    estimated_stats = []
     with torch.cuda.device(args.gpu_index):
         for file in checkpoints:
             state = torch.load(file)
             model.load_state_dict(state['state_dict'])
             model.eval()
-            simclr = SimCLR(model=model, optimizer=None, args=args)
+            trainer = trainer_class(model=model, optimizer=None, args=args)
 
-            checkpoint_probs = []
+            checkpoint_stats = []
             for i in range(args.estimate_batches):
                 if args.fixed_augments:
                     set_random_seed(args.seed)
 
-                images = []
+                images, labels = [], []
                 for index in sample_indices[i: i + args.batch_size]:
-                    images += [torch.stack(train_dataset[index][0], dim=0)]
+                    example = train_dataset[index]
+                    if args.mode == 'simclr':
+                        images += [torch.stack(train_dataset[index][0], dim=0)]
+                    elif args.mode == 'supervised':
+                        images += [example[0]]
+                        labels += [example[1]]
+
+                if args.mode == 'supervised':
+                    images = torch.stack(images, dim=0)
+                    labels = torch.tensor(labels, dtype=torch.long)
 
                 with torch.no_grad():
-                    images = torch.cat(images, dim=0)
                     images = images.to(args.device)
+                    logits, labels = trainer.calculate_logits(images, labels)
 
-                    features = model(images)
-                    logits, _ = simclr.info_nce_loss(features)
-                    probs = torch.softmax(logits, dim=1)[:, 0]
-                    checkpoint_probs += [probs.detach().cpu()]
+                    if args.estimate_mode == 'argmax':
+                        stats = (torch.argmax(logits, dim=1) == labels).to(torch.int)
+                    elif args.estimate_mode == 'probs':
+                        stats = torch.softmax(logits, dim=1)
+                    else:
+                        raise InvalidEstimationMode()
+                    checkpoint_stats += [stats.detach().cpu()]
 
-            checkpoint_probs = torch.cat(checkpoint_probs, dim=0)
-            mean_probs += [checkpoint_probs]
+            checkpoint_stats = torch.cat(checkpoint_stats, dim=0)
+            estimated_stats += [checkpoint_stats]
 
-    mean_probs = torch.stack(mean_probs, dim=-1)
-    mean_probs = torch.mean(mean_probs, dim=-1)
-
-    if not os.path.isdir('experiments'):
-        os.mkdir('experiments')
-    torch.save(mean_probs, os.path.join('experiments', args.experiment_group, args.out_file))
+    estimated_stats = torch.stack(estimated_stats, dim=0)
+    torch.save(estimated_stats, os.path.join('experiments', args.experiment_group, args.out_file))
 
 
 if __name__ == '__main__':
