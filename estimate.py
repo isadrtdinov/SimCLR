@@ -66,7 +66,7 @@ def main():
                 for index in sample_indices[i: i + args.batch_size]:
                     example = train_dataset[index]
                     if args.mode == 'simclr':
-                        images += [torch.stack(train_dataset[index][0], dim=0)]
+                        images += [torch.stack(example[0], dim=0)]
                     elif args.mode == 'supervised':
                         images += [example[0]]
                         labels += [example[1]]
@@ -76,7 +76,6 @@ def main():
                     labels = torch.tensor(labels, dtype=torch.long)
 
                 with torch.no_grad():
-                    images = images.to(args.device)
                     logits, labels = trainer.calculate_logits(images, labels)
 
                     if args.estimate_mode == 'argmax':
