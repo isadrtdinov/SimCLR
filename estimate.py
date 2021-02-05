@@ -88,7 +88,7 @@ def main():
                     if args.estimate_mode == 'argmax':
                         stats = (torch.argmax(logits, dim=1) == labels).to(torch.int)
                     elif args.estimate_mode == 'prob':
-                        stats = torch.softmax(logits, dim=1)[:, labels]
+                        stats = torch.softmax(logits, dim=1)[torch.arange(labels.shape[0]), labels]
                     else:
                         raise InvalidEstimationMode()
                     checkpoint_stats += [stats.detach().cpu()]
