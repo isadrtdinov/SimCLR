@@ -7,7 +7,7 @@ from models.resnet_simclr import ResNetSimCLR
 from exceptions.exceptions import InvalidTrainingMode, InvalidEstimationMode
 from trainers.simclr import SimCLRTrainer
 from trainers.supervised import SupervisedTrainer
-from utils import set_random_seed
+from utils import set_random_seed, accuracy
 from argparser import configure_parser
 
 
@@ -62,16 +62,23 @@ def main():
                 if args.fixed_augments:
                     set_random_seed(args.seed)
 
-                images, labels = [], []
-                for index in sample_indices[i: i + args.batch_size]:
-                    example = train_dataset[index]
-                    if args.mode == 'simclr':
-                        images += [torch.stack(example[0], dim=0)]
-                    elif args.mode == 'supervised':
+                if args.mode == 'simclr':
+                    images = [[], []]
+                    for index in sample_indices[i: i + args.batch_size]:
+                        example = train_dataset[index][0]
+                        images[0] += [example[0]]
+                        images[1] += [example[1]]
+
+                    images[0] = torch.stack(images[0], dim=0)
+                    images[1] = torch.stack(images[1], dim=0)
+                    labels = None
+                elif args.mode == 'supervised':
+                    images, labels = [], []
+                    for index in sample_indices[i: i + args.batch_size]:
+                        example = train_dataset[index]
                         images += [example[0]]
                         labels += [example[1]]
 
-                if args.mode == 'supervised':
                     images = torch.stack(images, dim=0)
                     labels = torch.tensor(labels, dtype=torch.long)
 
@@ -81,7 +88,7 @@ def main():
                     if args.estimate_mode == 'argmax':
                         stats = (torch.argmax(logits, dim=1) == labels).to(torch.int)
                     elif args.estimate_mode == 'prob':
-                        stats = torch.softmax(logits, dim=1)
+                        stats = torch.softmax(logits, dim=1)[:, labels]
                     else:
                         raise InvalidEstimationMode()
                     checkpoint_stats += [stats.detach().cpu()]
