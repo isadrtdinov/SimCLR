@@ -1,6 +1,6 @@
 from torchvision import transforms, datasets
 from exceptions.exceptions import InvalidDatasetSelection
-from utils import get_simclr_transform
+from utils.utils import get_simclr_transform
 
 
 class SupervisedLearningDataset:

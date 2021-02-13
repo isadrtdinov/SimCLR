@@ -1,7 +1,7 @@
 from torchvision import datasets
 from data_aug.view_generator import ContrastiveLearningViewGenerator
 from exceptions.exceptions import InvalidDatasetSelection
-from utils import get_simclr_transform
+from utils.utils import get_simclr_transform
 
 
 class ContrastiveLearningDataset:

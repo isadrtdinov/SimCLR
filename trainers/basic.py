@@ -4,7 +4,7 @@ import logging
 import torch
 import wandb
 from tqdm import tqdm
-from utils import accuracy
+from utils.utils import accuracy
 
 
 class BasicTrainer(object):
