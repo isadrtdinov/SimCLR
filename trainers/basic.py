@@ -47,7 +47,7 @@ class BasicTrainer(object):
         valid_top5 /= len(valid_loader)
 
         wandb.log({'valid loss': valid_loss, 'valid acc/top1': valid_top1,
-                   'valid acc/top5': valid_top1})
+                   'valid acc/top5': valid_top5})
 
     def train(self, train_loader, valid_loader):
         n_iter = 0
