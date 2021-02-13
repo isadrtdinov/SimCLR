@@ -29,7 +29,27 @@ class BasicTrainer(object):
     def calculate_logits(self, images, labels):
         raise NotImplementedError
 
-    def train(self, train_loader):
+    def validate(self, valid_loader):
+        valid_loss, valid_top1, valid_top5 = 0, 0, 0
+
+        for images, labels in valid_loader:
+            with torch.no_grad():
+                logits, labels = self.calculate_logits(images, labels)
+                loss = self.criterion(logits, labels)
+                top1, top5 = accuracy(logits, labels, topk=(1, 5))
+
+                valid_loss += loss.item()
+                valid_top1 += top1[0]
+                valid_top5 += top5[0]
+
+        valid_loss /= len(valid_loader)
+        valid_top1 /= len(valid_loader)
+        valid_top5 /= len(valid_loader)
+
+        wandb.log({'valid loss': valid_loss, 'valid acc/top1': valid_top1,
+                   'valid acc/top5': valid_top1})
+
+    def train(self, train_loader, valid_loader):
         n_iter = 0
         if not self.args.no_logging:
             logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
@@ -44,9 +64,12 @@ class BasicTrainer(object):
                 loss.backward()
                 self.optimizer.step()
 
-                if not self.args.no_logging and n_iter % self.args.log_every_n_steps == 0:
+                if not self.args.no_logging and n_iter % self.args.log_steps == 0:
                     top1, top5 = accuracy(logits, labels, topk=(1, 5))
-                    wandb.log({'loss': loss, 'acc/top1': top1[0], 'acc/top5': top5[0]})
+                    wandb.log({'train loss': loss, 'train acc/top1': top1[0], 'train acc/top5': top5[0]})
+
+                if not self.args.no_logging and n_iter % self.args.validation_steps == 0:
+                    self.validate(valid_loader)
 
                 n_iter += 1
 

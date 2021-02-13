@@ -1,23 +1,31 @@
 from torchvision import transforms, datasets
 from exceptions.exceptions import InvalidDatasetSelection
+from utils import get_simclr_transform
 
 
 class SupervisedLearningDataset:
     def __init__(self, root_folder):
         self.root_folder = root_folder
 
-    def get_dataset(self, name):
-        valid_datasets = {'cifar10': lambda: datasets.CIFAR10(self.root_folder, train=True,
-                                                              transform=transforms.ToTensor(),
-                                                              download=True),
+    def get_dataset(self, name, transform='none', train=True):
+        if name == 'cifar10':
+            if transform == 'none':
+                transform = transforms.ToTensor()
+            elif transform == 'simclr':
+                transform = get_simclr_transform(32)
 
-                          'stl10': lambda: datasets.STL10(self.root_folder, split='train',
-                                                          transform=transforms.ToTensor(),
-                                                          download=True)}
+            return datasets.CIFAR10(self.root_folder, train=train,
+                                    transform=transform, download=True)
 
-        try:
-            dataset_fn = valid_datasets[name]
-        except KeyError:
-            raise InvalidDatasetSelection()
+        elif name == 'stl10':
+            if transform == 'none':
+                transform = transforms.ToTensor()
+            elif transform == 'simclr':
+                transform = get_simclr_transform(32)
+
+            split = 'train' if train else 'test'
+            return datasets.STL10(self.root_folder, split=split,
+                                  transform=transform, download=True)
+
         else:
-            return dataset_fn()
+            raise InvalidDatasetSelection()

@@ -4,10 +4,10 @@ import torch.backends.cudnn as cudnn
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from data_aug.supervised_learning_dataset import SupervisedLearningDataset
 from models.resnet_simclr import ResNetSimCLR
-from exceptions.exceptions import InvalidTrainingMode, InvalidEstimationMode
+from exceptions.exceptions import InvalidTrainingMode
 from trainers.simclr import SimCLRTrainer
 from trainers.supervised import SupervisedTrainer
-from utils import set_random_seed, accuracy
+from utils import set_random_seed
 from argparser import configure_parser
 
 
@@ -49,7 +49,7 @@ def main():
     sample_indices = torch.randint(len(train_dataset), size=(args.batch_size * args.estimate_batches, ))
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
-    estimated_stats = []
+    estimated_prob, estimated_argmax = [], []
     with torch.cuda.device(args.gpu_index):
         for file in checkpoints:
             state = torch.load(file)
@@ -57,7 +57,7 @@ def main():
             model.eval()
             trainer = trainer_class(model=model, optimizer=None, args=args)
 
-            checkpoint_stats = []
+            checkpoint_prob, checkpoint_argmax = []
             for i in range(args.estimate_batches):
                 if args.fixed_augments:
                     set_random_seed(args.seed)
@@ -85,19 +85,25 @@ def main():
                 with torch.no_grad():
                     logits, labels = trainer.calculate_logits(images, labels)
 
-                    if args.estimate_mode == 'argmax':
-                        stats = (torch.argmax(logits, dim=1) == labels).to(torch.int)
-                    elif args.estimate_mode == 'prob':
-                        stats = torch.softmax(logits, dim=1)[torch.arange(labels.shape[0]), labels]
-                    else:
-                        raise InvalidEstimationMode()
-                    checkpoint_stats += [stats.detach().cpu()]
+                    prob = torch.softmax(logits, dim=1)[torch.arange(labels.shape[0]), labels]
+                    checkpoint_prob += [prob.detach().cpu()]
 
-            checkpoint_stats = torch.cat(checkpoint_stats, dim=0)
-            estimated_stats += [checkpoint_stats]
+                    argmax = (torch.argmax(logits, dim=1) == labels).to(torch.int)
+                    checkpoint_argmax += [argmax.detach().cpu()]
 
-    estimated_stats = torch.stack(estimated_stats, dim=0)
-    torch.save(estimated_stats, os.path.join('experiments', args.experiment_group, args.out_file))
+            checkpoint_prob = torch.cat(checkpoint_prob, dim=0)
+            estimated_prob += [checkpoint_prob]
+
+            checkpoint_argmax = torch.cat(checkpoint_argmax, dim=0)
+            estimated_argmax += [checkpoint_argmax]
+
+    estimated_prob = torch.stack(estimated_prob, dim=0)
+    estimated_argmax = torch.stack(estimated_argmax, dim=0)
+    torch.save({
+        'indices': sample_indices,
+        'prob': estimated_prob,
+        'argmax': estimated_argmax
+    }, os.path.join('experiments', args.experiment_group, args.out_file))
 
 
 if __name__ == '__main__':

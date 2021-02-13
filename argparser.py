@@ -38,8 +38,10 @@ def configure_parser():
 
     parser.add_argument('--out-dim', default=128, type=int,
                         help='Feature dimension (default: 128)')
-    parser.add_argument('--log-every-n-steps', default=100, type=int,
-                        help='Log every n steps')
+    parser.add_argument('--log-steps', default=100, type=int,
+                        help='Number of steps to log train metrics')
+    parser.add_argument('--validation-steps', default=1000, type=int,
+                        help='Number of steps to validate model')
     parser.add_argument('--temperature', default=0.07, type=float,
                         help='Softmax temperature (default: 0.07)')
     parser.add_argument('--n-views', default=2, type=int, metavar='N',
@@ -52,11 +54,11 @@ def configure_parser():
                         help='Training mode')
     parser.add_argument('--checkpoint-epochs', type=int, nargs='+', default=[],
                         help='List of epochs to save checkpoints from')
+    parser.add_argument('--supervised-augments', default='none', choices=['none', 'simclr'],
+                        help='Augmentations to use during supervised training')
 
     parser.add_argument('--estimate-batches', type=int, default=4,
                         help='Number of batches to estimate probs')
-    parser.add_argument('--estimate-mode', default='argmax', choices=['argmax', 'prob'],
-                        help='Estimation mode')
     parser.add_argument('--estimate-checkpoint', default='checkpoint_0001.pt',
                         help='Checkpoint template to estimate')
     parser.add_argument('--fixed-augments', action='store_true',
