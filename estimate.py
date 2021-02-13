@@ -7,7 +7,7 @@ from models.resnet_simclr import ResNetSimCLR
 from exceptions.exceptions import InvalidTrainingMode
 from trainers.simclr import SimCLRTrainer
 from trainers.supervised import SupervisedTrainer
-from utils.utils import set_random_seed
+from utils import set_random_seed
 from argparser import configure_parser
 
 

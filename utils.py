@@ -2,10 +2,8 @@ import random
 
 import numpy as np
 import torch
-from torchvision import transforms
 
 from exceptions.exceptions import InvalidTrainingMode
-from data_aug.gaussian_blur import GaussianBlur
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from data_aug.supervised_learning_dataset import SupervisedLearningDataset
 
@@ -33,18 +31,6 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
-
-
-def get_simclr_transform(size, s=1):
-    """Return a set of data augmentation transformations as described in the SimCLR paper."""
-    color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
-    data_transforms = transforms.Compose([transforms.RandomResizedCrop(size=size),
-                                          transforms.RandomHorizontalFlip(),
-                                          transforms.RandomApply([color_jitter], p=0.8),
-                                          transforms.RandomGrayscale(p=0.2),
-                                          GaussianBlur(kernel_size=int(0.1 * size)),
-                                          transforms.ToTensor()])
-    return data_transforms
 
 
 def get_dataloaders(args):
