@@ -39,8 +39,8 @@ class BasicTrainer(object):
                 top1, top5 = accuracy(logits, labels, topk=(1, 5))
 
                 valid_loss += loss.item()
-                valid_top1 += top1[0]
-                valid_top5 += top5[0]
+                valid_top1 += top1.item()
+                valid_top5 += top5.item()
 
         valid_loss /= len(valid_loader)
         valid_top1 /= len(valid_loader)
@@ -66,7 +66,9 @@ class BasicTrainer(object):
 
                 if not self.args.no_logging and n_iter % self.args.log_steps == 0:
                     top1, top5 = accuracy(logits, labels, topk=(1, 5))
-                    wandb.log({'train loss': loss, 'train acc/top1': top1[0], 'train acc/top5': top5[0]})
+                    wandb.log({'train loss': loss.item(),
+                               'train acc/top1': top1.item(),
+                               'train acc/top5': top5.item()})
 
                 if not self.args.no_logging and n_iter % self.args.validation_steps == 0:
                     self.validate(valid_loader)
@@ -74,7 +76,7 @@ class BasicTrainer(object):
                 n_iter += 1
 
             if not self.args.no_logging:
-                logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss}\tTop1 accuracy: {top1[0]}")
+                logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss.item()}\tTop1 accuracy: {top1.item()}")
 
             if not self.args.no_logging and epoch_counter in self.args.checkpoint_epochs:
                 checkpoint_name = 'checkpoint_{:04d}.pt'.format(epoch_counter)

@@ -44,6 +44,7 @@ def main():
         for file in files:
             if file == args.estimate_checkpoint:
                 checkpoints += [os.path.join(root, file)]
+    print(checkpoints)
 
     set_random_seed(args.seed)
     sample_indices = torch.randint(len(train_dataset), size=(args.batch_size * args.estimate_batches, ))
@@ -57,7 +58,7 @@ def main():
             model.eval()
             trainer = trainer_class(model=model, optimizer=None, args=args)
 
-            checkpoint_prob, checkpoint_argmax = []
+            checkpoint_prob, checkpoint_argmax = [], []
             for i in range(args.estimate_batches):
                 if args.fixed_augments:
                     set_random_seed(args.seed)
