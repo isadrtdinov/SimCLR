@@ -12,6 +12,7 @@ class BasicTrainer(object):
         self.args = kwargs['args']
         self.model = kwargs['model'].to(self.args.device)
         self.optimizer = kwargs['optimizer']
+        self.scheduler = kwargs['scheduler']
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
 
         if not os.path.isdir('experiments'):
@@ -29,7 +30,10 @@ class BasicTrainer(object):
     def calculate_logits(self, images, labels):
         raise NotImplementedError
 
-    def validate(self, valid_loader):
+    def process_scheduler(self, epoch_counter):
+        raise NotImplementedError
+
+    def validate(self, valid_loader, epoch_counter):
         valid_loss, valid_top1, valid_top5 = 0, 0, 0
 
         for images, labels in valid_loader:
@@ -47,7 +51,7 @@ class BasicTrainer(object):
         valid_top5 /= len(valid_loader)
 
         wandb.log({'valid loss': valid_loss, 'valid acc/top1': valid_top1,
-                   'valid acc/top5': valid_top5})
+                   'valid acc/top5': valid_top5, 'epoch': epoch_counter})
 
     def train(self, train_loader, valid_loader):
         n_iter = 0
@@ -68,12 +72,15 @@ class BasicTrainer(object):
                     top1, top5 = accuracy(logits, labels, topk=(1, 5))
                     wandb.log({'train loss': loss.item(),
                                'train acc/top1': top1.item(),
-                               'train acc/top5': top5.item()})
-
-                if not self.args.no_logging and n_iter % self.args.validation_steps == 0:
-                    self.validate(valid_loader)
+                               'train acc/top5': top5.item(),
+                               'train step': n_iter})
 
                 n_iter += 1
+
+            self.process_scheduler(epoch_counter)
+
+            if not self.args.no_logging and epoch_counter % self.args.validation_epochs == 0:
+                self.validate(valid_loader, epoch_counter)
 
             if not self.args.no_logging:
                 logging.debug(f"Epoch: {epoch_counter}\tLoss: {loss.item()}\tTop1 accuracy: {top1.item()}")

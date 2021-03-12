@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-
 from trainers.basic import BasicTrainer
 
 
@@ -42,3 +41,7 @@ class SimCLRTrainer(BasicTrainer):
         features = self.model(images)
         logits, labels = self.info_nce_loss(features)
         return logits, labels
+
+    def process_scheduler(self, epoch_counter):
+        if epoch_counter >= 10:
+            self.scheduler.step()

@@ -35,11 +35,19 @@ def main():
     else:
         raise InvalidTrainingMode()
 
-    optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
+    if args.optimizer_mode == 'simclr':
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(train_loader),
+                                                               eta_min=0, last_epoch=-1)
+
+    else:
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
+                                    momentum=0.9, weight_decay=args.weight_decay)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
     with torch.cuda.device(args.gpu_index):
-        trainer = trainer_class(model=model, optimizer=optimizer, args=args)
+        trainer = trainer_class(model=model, optimizer=optimizer, scheduler=scheduler, args=args)
         trainer.train(train_loader, valid_loader)
 
 

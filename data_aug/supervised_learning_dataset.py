@@ -1,6 +1,6 @@
 from torchvision import transforms, datasets
 from exceptions.exceptions import InvalidDatasetSelection
-from data_aug.simclr_transform import get_simclr_transform
+from data_aug.simclr_transform import get_simclr_transform, get_cifar10_transform
 
 
 class SupervisedLearningDataset:
@@ -11,8 +11,10 @@ class SupervisedLearningDataset:
         if name == 'cifar10':
             if transform == 'none':
                 transform = transforms.ToTensor()
+            elif transform == 'cifar10':
+                transform = get_cifar10_transform(32, train)
             elif transform == 'simclr':
-                transform = get_simclr_transform(32)
+                transform = get_simclr_transform(32, train=train)
 
             return datasets.CIFAR10(self.root_folder, train=train,
                                     transform=transform, download=True)
@@ -20,8 +22,10 @@ class SupervisedLearningDataset:
         elif name == 'stl10':
             if transform == 'none':
                 transform = transforms.ToTensor()
+            elif transform == 'cifar10':
+                transform = get_cifar10_transform(96, train)
             elif transform == 'simclr':
-                transform = get_simclr_transform(32)
+                transform = get_simclr_transform(96, train=train)
 
             split = 'train' if train else 'test'
             return datasets.STL10(self.root_folder, split=split,

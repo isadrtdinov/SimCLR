@@ -7,3 +7,6 @@ class SupervisedTrainer(BasicTrainer):
         labels = labels.to(self.args.device)
         logits = self.model(images) / self.args.temperature
         return logits, labels
+
+    def process_scheduler(self, epoch_counter):
+        self.scheduler.step()

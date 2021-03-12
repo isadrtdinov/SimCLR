@@ -29,7 +29,7 @@ def configure_parser():
     parser.add_argument('--lr', '--learning-rate', default=0.0003, type=float,
                         metavar='LR', help='Initial learning rate', dest='lr')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float,
-                        metavar='W', help='weight decay (default: 1e-4)',
+                        metavar='W', help='weight decay (default: 0)',
                         dest='weight_decay')
     parser.add_argument('--seed', default=None, type=int,
                         help='Seed for initializing training. ')
@@ -40,8 +40,8 @@ def configure_parser():
                         help='Feature dimension (default: 128)')
     parser.add_argument('--log-steps', default=100, type=int,
                         help='Number of steps to log train metrics')
-    parser.add_argument('--validation-steps', default=1000, type=int,
-                        help='Number of steps to validate model')
+    parser.add_argument('--validation-epochs', default=1, type=int,
+                        help='Number of epochs to validate model')
     parser.add_argument('--temperature', default=0.07, type=float,
                         help='Softmax temperature (default: 0.07)')
     parser.add_argument('--n-views', default=2, type=int, metavar='N',
@@ -52,10 +52,12 @@ def configure_parser():
     parser.add_argument('--no-logging', action='store_true', help='Turn off logging to W&B')
     parser.add_argument('--mode', default='simclr', choices=['simclr', 'supervised'],
                         help='Training mode')
+    parser.add_argument('--optimizer-mode', default='simclr', choices=['simclr', 'supervised'],
+                        help='Optimizer and scheduler mode')
+    parser.add_argument('--supervised-augments', default='none', choices=['none', 'cifar10', 'simclr'],
+                        help='Augmentations to use during supervised training')
     parser.add_argument('--checkpoint-epochs', type=int, nargs='+', default=[],
                         help='List of epochs to save checkpoints from')
-    parser.add_argument('--supervised-augments', default='none', choices=['none', 'simclr'],
-                        help='Augmentations to use during supervised training')
 
     parser.add_argument('--estimate-batches', type=int, default=4,
                         help='Number of batches to estimate probs')

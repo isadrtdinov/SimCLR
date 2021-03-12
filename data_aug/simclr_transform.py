@@ -46,13 +46,38 @@ class GaussianBlur(object):
         return img
 
 
-def get_simclr_transform(size, s=1):
+def get_simclr_transform(size, s=1, train=True):
     """Return a set of data augmentation transformations as described in the SimCLR paper."""
     color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
-    data_transforms = transforms.Compose([transforms.RandomResizedCrop(size=size),
-                                          transforms.RandomHorizontalFlip(),
-                                          transforms.RandomApply([color_jitter], p=0.8),
-                                          transforms.RandomGrayscale(p=0.2),
-                                          GaussianBlur(kernel_size=int(0.1 * size)),
-                                          transforms.ToTensor()])
-    return data_transforms
+    if train:
+        transform = transforms.Compose([
+            transforms.RandomResizedCrop(size=size),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([color_jitter], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            GaussianBlur(kernel_size=int(0.1 * size)),
+            transforms.ToTensor()
+        ])
+
+    else:
+        transform = transforms.ToTensor()
+
+    return transform
+
+
+def get_cifar10_transform(size, train=True):
+    if train:
+        transform = transforms.Compose([
+            transforms.RandomCrop(size, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+
+    return transform
