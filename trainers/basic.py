@@ -60,6 +60,8 @@ class BasicTrainer(object):
             logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
         for epoch_counter in range(1, self.args.epochs + 1):
+            self.model.train()
+
             for images, labels in tqdm(train_loader):
                 logits, labels = self.calculate_logits(images, labels)
                 loss = self.criterion(logits, labels)
@@ -80,6 +82,7 @@ class BasicTrainer(object):
             self.process_scheduler(epoch_counter)
 
             if not self.args.no_logging and epoch_counter % self.args.validation_epochs == 0:
+                self.model.eval()
                 self.validate(valid_loader, epoch_counter)
 
             if not self.args.no_logging:

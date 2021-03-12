@@ -16,7 +16,7 @@ def configure_parser():
                         choices=model_names,
                         help='Model architecture: ' +
                              ' | '.join(model_names) +
-                             ' (default: resnet50)')
+                             ' (default: resnet18)')
     parser.add_argument('-j', '--workers', default=12, type=int, metavar='N',
                         help='Number of data loading workers (default: 12)')
     parser.add_argument('--epochs', default=200, type=int, metavar='N',
@@ -26,10 +26,10 @@ def configure_parser():
                         help='Mini-batch size (default: 256), this is the total '
                              'batch size of all GPUs on the current node when '
                              'using Data Parallel or Distributed Data Parallel')
-    parser.add_argument('--lr', '--learning-rate', default=0.0003, type=float,
+    parser.add_argument('--lr', '--learning-rate', default=3e-4, type=float,
                         metavar='LR', help='Initial learning rate', dest='lr')
-    parser.add_argument('--wd', '--weight-decay', default=0, type=float,
-                        metavar='W', help='weight decay (default: 0)',
+    parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
+                        metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
     parser.add_argument('--seed', default=None, type=int,
                         help='Seed for initializing training. ')
