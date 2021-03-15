@@ -28,12 +28,12 @@ def main():
 
     if args.mode == 'simclr':
         dataset = ContrastiveLearningDataset(args.data)
-        train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
+        train_dataset = dataset.get_dataset(args.dataset_name, args.n_views, train=True)
         model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
         trainer_class = SimCLRTrainer
     elif args.mode == 'supervised':
         dataset = SupervisedLearningDataset(args.data)
-        train_dataset = dataset.get_dataset(args.dataset_name)
+        train_dataset = dataset.get_dataset(args.dataset_name, args.supervised_augments, train=True)
         model = ResNetSimCLR(base_model=args.arch, out_dim=len(train_dataset.classes))
         trainer_class = SupervisedTrainer
     else:
@@ -44,7 +44,6 @@ def main():
         for file in files:
             if file == args.estimate_checkpoint:
                 checkpoints += [os.path.join(root, file)]
-    print(checkpoints)
 
     set_random_seed(args.seed)
     sample_indices = torch.randint(len(train_dataset), size=(args.batch_size * args.estimate_batches, ))
@@ -56,7 +55,7 @@ def main():
             state = torch.load(file)
             model.load_state_dict(state['model'])
             model.eval()
-            trainer = trainer_class(model=model, optimizer=None, args=args)
+            trainer = trainer_class(model=model, optimizer=None, scheduler=None, args=args)
 
             checkpoint_prob, checkpoint_argmax = [], []
             for i in range(args.estimate_batches):
