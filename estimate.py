@@ -1,4 +1,5 @@
 import os
+import random
 import torch
 import torch.backends.cudnn as cudnn
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
@@ -38,6 +39,10 @@ def main():
         trainer_class = SupervisedTrainer
     else:
         raise InvalidTrainingMode()
+
+    if args.target_shuffle is not None:
+        random.seed(args.target_shuffle)
+        random.shuffle(train_dataset.targets)
 
     checkpoints = []
     for root, dirs, files in os.walk(os.path.join('experiments', args.experiment_group, 'wandb')):

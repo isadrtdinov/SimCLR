@@ -1,5 +1,4 @@
 import random
-
 import numpy as np
 import torch
 
@@ -46,6 +45,11 @@ def get_dataloaders(args):
 
     else:
         raise InvalidTrainingMode()
+
+    if args.target_shuffle is not None:
+        random.seed(args.target_shuffle)
+        random.shuffle(train_dataset.targets)
+        random.shuffle(valid_dataset.targets)
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,

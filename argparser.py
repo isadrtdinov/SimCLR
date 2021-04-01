@@ -56,6 +56,8 @@ def configure_parser():
                         help='Optimizer and scheduler mode')
     parser.add_argument('--supervised-augments', default='none', choices=['none', 'cifar10', 'simclr'],
                         help='Augmentations to use during supervised training')
+    parser.add_argument('--target-shuffle', default=None, type=int,
+                        help='Random seed to shuffle targets')
     parser.add_argument('--checkpoint-epochs', type=int, nargs='+', default=[],
                         help='List of epochs to save checkpoints from')
 
