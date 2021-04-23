@@ -49,7 +49,7 @@ class SupervisedTrainer(BasicTrainer):
                 aug_argmax += [argmax.detach().cpu()]
 
             full_probs += [torch.cat(aug_probs, dim=0)]
-            aug_argmax += [torch.cat(aug_argmax, dim=0)]
+            full_argmax += [torch.cat(aug_argmax, dim=0)]
 
         full_probs = torch.stack(full_probs, dim=0)
         full_argmax = torch.stack(full_argmax, dim=0)

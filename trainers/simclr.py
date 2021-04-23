@@ -57,7 +57,7 @@ class SimCLRTrainer(BasicTrainer):
                 examples[1] += [example[1]]
 
             full_examples[0] += [torch.stack(examples[0], dim=0)]
-            full_examples[1] += [torch.stack(examples[0], dim=0)]
+            full_examples[1] += [torch.stack(examples[1], dim=0)]
 
         full_examples[0] = torch.stack(full_examples[0], dim=0)
         full_examples[1] = torch.stack(full_examples[1], dim=0)
@@ -83,7 +83,7 @@ class SimCLRTrainer(BasicTrainer):
                 aug_argmax += [argmax.detach().cpu()]
 
             full_probs += [torch.cat(aug_probs, dim=0)]
-            aug_argmax += [torch.cat(aug_argmax, dim=0)]
+            full_argmax += [torch.cat(aug_argmax, dim=0)]
 
         full_probs = torch.stack(full_probs, dim=0)
         full_argmax = torch.stack(full_argmax, dim=0)
