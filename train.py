@@ -47,7 +47,8 @@ def main():
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
     with torch.cuda.device(args.gpu_index):
-        trainer = trainer_class(model=model, optimizer=optimizer, scheduler=scheduler, args=args)
+        trainer = trainer_class(model=model, optimizer=optimizer, scheduler=scheduler,
+                                train_dataset=train_loader.dataset, args=args)
         trainer.train(train_loader, valid_loader)
 
 

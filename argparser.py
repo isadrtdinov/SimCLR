@@ -61,6 +61,10 @@ def configure_parser():
     parser.add_argument('--checkpoint-epochs', type=int, nargs='+', default=[],
                         help='List of epochs to save checkpoints from')
 
+    parser.add_argument('--estimate-seed', type=int, default=None,
+                        help='Random seed to estimate stats during training')
+    parser.add_argument('--num-augments', type=int, default=1,
+                        help='Number of augmentation pairs to generate for each example')
     parser.add_argument('--estimate-batches', type=int, default=4,
                         help='Number of batches to estimate probs')
     parser.add_argument('--estimate-checkpoint', default='checkpoint_0001.pt',

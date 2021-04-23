@@ -2,3 +2,5 @@
 .ipynb_checkpoints/
 wandb/
 experiments/
+__pycache__/
+
